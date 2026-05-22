@@ -1,5 +1,5 @@
 # ============================================================
-# Credit Risk Classifier — Phase 4: Streamlit Web App
+# Credit Risk Classifier - Phase 4: Streamlit Web App
 # ============================================================
 # Install dependencies:
 #   pip install streamlit shap matplotlib
@@ -15,14 +15,12 @@ import matplotlib.patches as mpatches
 import pickle
 import shap
 
-# ── PAGE CONFIG ─────────────────────────────────────────────
 st.set_page_config(
     page_title="Credit Risk Classifier",
-    page_icon="💳",
+    page_icon="",
     layout="wide"
 )
 
-# ── LOAD MODEL ──────────────────────────────────────────────
 @st.cache_resource
 def load_model():
     with open("credit_risk_model.pkl", "rb") as f:
@@ -32,7 +30,6 @@ def load_model():
 
 model, explainer = load_model()
 
-# ── MAPPINGS ────────────────────────────────────────────────
 GRADE_MAP   = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5, "G": 6}
 PURPOSE_MAP = {
     "Car": 0, "Credit Card": 1, "Debt Consolidation": 2,
@@ -45,7 +42,7 @@ HOME_MAP = {"ANY": 0, "Mortgage": 1, "Own": 2, "Rent": 3}
 FEATURE_LABELS = {
     "loan_amnt":      "Loan Amount ($)",
     "int_rate":       "Interest Rate (%)",
-    "grade":          "Loan Grade (A–G)",
+    "grade":          "Loan Grade (A-G)",
     "emp_length":     "Employment Length (yrs)",
     "annual_inc":     "Annual Income ($)",
     "dti":            "Debt-to-Income Ratio",
@@ -62,37 +59,34 @@ FEATURE_LABELS = {
 
 FEATURES = list(FEATURE_LABELS.keys())
 
-# ── HEADER ──────────────────────────────────────────────────
-st.title("💳 Credit Risk Classifier")
+st.title("Credit Risk Classifier")
 st.markdown(
     "Enter loan details below to predict the probability of default. "
-    "Built with **XGBoost** + **SHAP** on 44,000 real LendingClub loans."
+    "Built with **XGBoost** and **SHAP** on 44,000 real LendingClub loans."
 )
 st.divider()
 
-# ── SIDEBAR — LOAN INPUTS ───────────────────────────────────
-st.sidebar.header("🔢 Loan Application Details")
+st.sidebar.header("Loan Application Details")
 st.sidebar.markdown("Adjust the values to match the applicant.")
 
-loan_amnt   = st.sidebar.number_input("Loan Amount ($)",        1000, 35000, 10000, step=500)
-int_rate    = st.sidebar.slider("Interest Rate (%)",            5.0,  30.0,  12.0,  step=0.1)
-grade       = st.sidebar.selectbox("Loan Grade",                list(GRADE_MAP.keys()))
-emp_length  = st.sidebar.slider("Employment Length (years)",    0,    10,    3)
-annual_inc  = st.sidebar.number_input("Annual Income ($)",      10000, 300000, 60000, step=1000)
-dti         = st.sidebar.slider("Debt-to-Income Ratio (%)",     0.0,  50.0,  15.0,  step=0.1)
-fico        = st.sidebar.slider("FICO Credit Score",            580,  850,   690,   step=5)
-revol_util  = st.sidebar.slider("Credit Utilization (%)",       0.0,  100.0, 50.0,  step=1.0)
-delinq      = st.sidebar.number_input("Delinquencies (last 2 yrs)", 0, 20, 0)
+loan_amnt   = st.sidebar.number_input("Loan Amount ($)",              1000, 35000, 10000, step=500)
+int_rate    = st.sidebar.slider("Interest Rate (%)",                  5.0,  30.0,  12.0,  step=0.1)
+grade       = st.sidebar.selectbox("Loan Grade",                      list(GRADE_MAP.keys()))
+emp_length  = st.sidebar.slider("Employment Length (years)",          0,    10,    3)
+annual_inc  = st.sidebar.number_input("Annual Income ($)",            10000, 300000, 60000, step=1000)
+dti         = st.sidebar.slider("Debt-to-Income Ratio (%)",           0.0,  50.0,  15.0,  step=0.1)
+fico        = st.sidebar.slider("FICO Credit Score",                  580,  850,   690,   step=5)
+revol_util  = st.sidebar.slider("Credit Utilization (%)",             0.0,  100.0, 50.0,  step=1.0)
+delinq      = st.sidebar.number_input("Delinquencies (last 2 yrs)",   0, 20, 0)
 inq         = st.sidebar.number_input("Credit Inquiries (last 6 mo)", 0, 10, 1)
-open_acc    = st.sidebar.number_input("Open Credit Accounts",   1,    40,    8)
-pub_rec     = st.sidebar.number_input("Public Records",         0,    10,    0)
-purpose     = st.sidebar.selectbox("Loan Purpose",              list(PURPOSE_MAP.keys()))
-home        = st.sidebar.selectbox("Home Ownership",            list(HOME_MAP.keys()))
-term        = st.sidebar.selectbox("Loan Term (months)",        [36, 60])
+open_acc    = st.sidebar.number_input("Open Credit Accounts",         1,    40,    8)
+pub_rec     = st.sidebar.number_input("Public Records",               0,    10,    0)
+purpose     = st.sidebar.selectbox("Loan Purpose",                    list(PURPOSE_MAP.keys()))
+home        = st.sidebar.selectbox("Home Ownership",                  list(HOME_MAP.keys()))
+term        = st.sidebar.selectbox("Loan Term (months)",              [36, 60])
 
-predict_btn = st.sidebar.button("🔍 Analyze Risk", use_container_width=True, type="primary")
+predict_btn = st.sidebar.button("Analyze Risk", use_container_width=True, type="primary")
 
-# ── PREDICTION ──────────────────────────────────────────────
 if predict_btn:
     input_data = pd.DataFrame([{
         "loan_amnt":      loan_amnt,
@@ -112,18 +106,16 @@ if predict_btn:
         "term":           term,
     }])
 
-    prob    = model.predict_proba(input_data)[0][1]
-    sv      = explainer.shap_values(input_data)[0]
+    prob = model.predict_proba(input_data)[0][1]
+    sv   = explainer.shap_values(input_data)[0]
 
-    # ── RISK TIER ────────────────────────────────────────────
     if prob >= 0.5:
-        tier, color, emoji = "HIGH RISK", "#E24B4A", "🔴"
+        tier, color = "HIGH RISK", "#E24B4A"
     elif prob >= 0.3:
-        tier, color, emoji = "MEDIUM RISK", "#BA7517", "🟡"
+        tier, color = "MEDIUM RISK", "#BA7517"
     else:
-        tier, color, emoji = "LOW RISK", "#1D9E75", "🟢"
+        tier, color = "LOW RISK", "#1D9E75"
 
-    # ── TOP ROW — SCORE + DETAILS ────────────────────────────
     col1, col2, col3 = st.columns([1, 1, 1])
 
     with col1:
@@ -131,7 +123,6 @@ if predict_btn:
         st.markdown(
             f"<div style='background:{color}18; border:1.5px solid {color}; "
             f"border-radius:12px; padding:20px; text-align:center;'>"
-            f"<div style='font-size:48px;'>{emoji}</div>"
             f"<div style='font-size:36px; font-weight:600; color:{color};'>{prob:.1%}</div>"
             f"<div style='font-size:18px; color:{color}; font-weight:500;'>{tier}</div>"
             f"<div style='font-size:13px; color:gray; margin-top:6px;'>Default probability</div>"
@@ -157,8 +148,7 @@ if predict_btn:
     with col3:
         st.markdown("### Risk Gauge")
         fig_gauge, ax = plt.subplots(figsize=(4, 2.5))
-        bar_color = color
-        ax.barh(["Default Risk"], [prob], color=bar_color, height=0.4)
+        ax.barh(["Default Risk"], [prob], color=color, height=0.4)
         ax.barh(["Default Risk"], [1 - prob], left=[prob], color="#E8E8E8", height=0.4)
         ax.set_xlim(0, 1)
         ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
@@ -173,17 +163,15 @@ if predict_btn:
 
     st.divider()
 
-    # ── SHAP EXPLANATION ─────────────────────────────────────
-    st.markdown("### 🔍 Why did the model give this score?")
+    st.markdown("### Why did the model give this score?")
     st.markdown(
         "SHAP (SHapley Additive exPlanations) shows exactly which factors "
-        "pushed the risk **up** 🔴 or **down** 🟢 for this specific applicant."
+        "pushed the risk **up** or **down** for this specific applicant."
     )
 
     col4, col5 = st.columns([1.2, 1])
 
     with col4:
-        # Waterfall bar chart
         shap_pairs = sorted(zip(FEATURES, sv), key=lambda x: abs(x[1]), reverse=True)[:8]
         labels = [FEATURE_LABELS[f] for f, _ in shap_pairs]
         values = [v for _, v in shap_pairs]
@@ -192,7 +180,7 @@ if predict_btn:
         fig_shap, ax2 = plt.subplots(figsize=(8, 5))
         ax2.barh(labels[::-1], values[::-1], color=colors[::-1])
         ax2.axvline(0, color="black", linewidth=0.8)
-        ax2.set_xlabel("SHAP value — impact on default probability")
+        ax2.set_xlabel("SHAP value - impact on default probability")
         ax2.set_title("Feature contributions for this applicant", fontsize=12)
         red_p = mpatches.Patch(color="#E24B4A", label="Increases default risk")
         grn_p = mpatches.Patch(color="#1D9E75", label="Decreases default risk")
@@ -205,7 +193,7 @@ if predict_btn:
     with col5:
         st.markdown("#### Top factors explained")
         for feat, val in shap_pairs[:6]:
-            direction = "🔴 Increases risk" if val > 0 else "🟢 Decreases risk"
+            direction = "Increases risk" if val > 0 else "Decreases risk"
             raw = input_data.iloc[0][feat]
             label_str = FEATURE_LABELS[feat]
 
@@ -235,17 +223,16 @@ if predict_btn:
 
     st.divider()
 
-    # ── RECOMMENDATION ───────────────────────────────────────
-    st.markdown("### 📋 Recommendation")
+    st.markdown("### Recommendation")
     if prob >= 0.5:
         st.error(
             f"**Decline recommended.** This applicant has a {prob:.1%} predicted default probability. "
-            f"Key risk factors: high interest rate, elevated DTI, or poor credit history. "
-            f"Consider requesting additional collateral or co-signer."
+            f"Key risk factors include a high interest rate, elevated DTI, or poor credit history. "
+            f"Consider requesting additional collateral or a co-signer."
         )
     elif prob >= 0.3:
         st.warning(
-            f"**Review carefully.** Default probability is {prob:.1%} — moderate risk. "
+            f"**Review carefully.** Default probability is {prob:.1%}, which represents moderate risk. "
             f"Consider a lower loan amount or shorter term to reduce exposure."
         )
     else:
@@ -255,8 +242,7 @@ if predict_btn:
         )
 
 else:
-    # ── DEFAULT STATE (before prediction) ───────────────────
-    st.markdown("### 👈 Enter loan details in the sidebar and click **Analyze Risk**")
+    st.markdown("### Enter loan details in the sidebar and click Analyze Risk")
 
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -265,15 +251,15 @@ else:
         1. Enter applicant details in the sidebar
         2. Click **Analyze Risk**
         3. Get a default probability score
-        4. See exactly *why* via SHAP
+        4. See exactly why via SHAP
         """)
     with col2:
         st.markdown("""
         #### What is SHAP?
         SHAP (SHapley Additive exPlanations) is a
-        cutting-edge technique that explains *why* a
-        model made a specific prediction — not just
-        what the prediction was.
+        technique that explains why a model made a
+        specific prediction, not just what the
+        prediction was.
         """)
     with col3:
         st.markdown("""
@@ -281,17 +267,16 @@ else:
         - Trained on 44,000 real LendingClub loans
         - XGBoost classifier (AUC: 0.72)
         - 15 financial features
-        - Built for college app portfolio project
+        - Built for college application portfolio
         """)
 
-    st.info("💡 Try a high-risk profile: Grade F, 26% interest rate, DTI 35%, FICO 670")
+    st.info("Try a high-risk profile: Grade F, 26% interest rate, DTI 35%, FICO 670")
 
-# ── FOOTER ──────────────────────────────────────────────────
 st.divider()
 st.markdown(
     "<div style='text-align:center; color:gray; font-size:12px;'>"
-    "Built with Python · XGBoost · SHAP · Streamlit · "
-    "Data: LendingClub 2007–2018"
+    "Built with Python, XGBoost, SHAP, and Streamlit. "
+    "Data: LendingClub 2007-2018"
     "</div>",
     unsafe_allow_html=True
 )
