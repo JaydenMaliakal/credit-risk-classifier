@@ -267,10 +267,9 @@ else:
         - Trained on 44,000 real LendingClub loans
         - XGBoost classifier (AUC: 0.72)
         - 15 financial features
-        - Built for college application portfolio
         """)
 
-    st.info("Try a high-risk profile: Grade F, 26% interest rate, DTI 35%, FICO 670")
+
 
 st.divider()
 st.markdown(
